@@ -4,7 +4,6 @@ from queue import Queue
 import sys
 from threading import Lock
 from threading import Thread
-from threading import current_thread  # noqa:H306
 from time import sleep
 from typing import Any
 from typing import Callable
@@ -13,12 +12,10 @@ from typing import Optional
 from typing import Set
 from typing import Tuple
 
-from xkits_command.actuator import Command
 from xkits_lib.meter import CountMeter
 from xkits_lib.meter import StatusCountMeter
 from xkits_lib.meter import TimeMeter
 from xkits_lib.meter import TimeUnit
-from xkits_logger.logger import Logger
 
 
 class TaskJob():
@@ -215,7 +212,6 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
     def __init__(self, workers: int = 1, jobs: int = 0, prefix: str = "task"):
         wsize: int = max(workers, 1)
         qsize = max(wsize, jobs) if jobs > 0 else jobs
-        self.__cmds: Command = Command()
         self.__jobs: JobQueue = Queue(qsize)
         self.__prefix: str = prefix or "task"
         self.__status: StatusCountMeter = StatusCountMeter()
@@ -237,11 +233,6 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
     def jobs(self) -> JobQueue:
         '''task jobs'''
         return self.__jobs
-
-    @property
-    def cmds(self) -> Command:
-        '''command-line toolkit'''
-        return self.__cmds
 
     @property
     def thread_name_prefix(self) -> str:
@@ -271,10 +262,6 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
     def task(self):
         '''execute a task from jobs queue'''
         status_counter: StatusCountMeter = StatusCountMeter()
-
-        logger: Logger = self.cmds.logger
-        logger.debug("Task thread %s is running", current_thread().name)
-
         while True:
             job: Optional[TaskJob] = self.jobs.get(block=True)
             if job is None:  # stop task
@@ -291,9 +278,6 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
             else:
                 self.status_counter.inc(True)
                 status_counter.inc(True)
-
-        logger.debug("Task thread %s is stopped, %s", current_thread().name,
-                     f"{status_counter.total} jobs: {status_counter.success} success and {status_counter.failure} failure")  # noqa:E501
 
     def submit_job(self, job: TaskJob) -> TaskJob:
         assert isinstance(job, TaskJob), f"{job} is not a TaskJob"
@@ -318,7 +302,6 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
     def shutdown(self) -> None:
         '''stop all task threads and waiting for all jobs finish'''
         with self.__intlock:  # block submit new tasks
-            self.cmds.logger.debug("Shutdown %s tasks", self.thread_name_prefix)  # noqa:E501
             self.__running = False
             self.jobs.put(None)  # notice tasks
             while len(self.threads) > 0:
@@ -332,7 +315,6 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
     def startup(self) -> None:
         '''start task threads'''
         with self.__intlock:
-            self.cmds.logger.debug("Startup %s tasks", self.thread_name_prefix)
             for i in range(self.workers):
                 thread_name: str = f"{self.thread_name_prefix}_{i}"
                 thread = Thread(name=thread_name, target=self.task)

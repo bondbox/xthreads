@@ -58,7 +58,6 @@ class TestThreadPool(unittest.TestCase):
             pool.submit(handle)
             pool.submit(handle)
             pool.submit(handle)
-            pool.cmds.stdout("unittest")
             self.assertIsInstance(pool.alive_threads, set)
             self.assertIsInstance(pool.other_threads, set)
             self.assertIsInstance(pool.other_alive_threads, set)

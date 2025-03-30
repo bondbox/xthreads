@@ -138,9 +138,9 @@ class TestTaskPool(unittest.TestCase):
 
     def test_task(self):
         def lock(tasker: TaskPool, index: int):
-            tasker.cmds.stdout(f"{index}")
             if index % 2 == 1:
                 raise Exception(f"task{index}")
+
         with TaskPool(8) as tasker:
             tasker.submit_job(TaskJob(123456, lock, tasker, 0))
             tasker.submit_delay_task(0.01, lock, tasker, 1)

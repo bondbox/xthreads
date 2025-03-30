@@ -9,7 +9,6 @@ from typing import Optional
 from typing import Set
 from typing import Tuple
 
-from xkits_command.actuator import Command
 from xkits_lib.meter import TimeUnit
 
 
@@ -45,15 +44,9 @@ class ThreadPool(ThreadPoolExecutor):
                  initializer: Optional[Callable] = None,
                  initargs: Tuple = ()):
         '''Initializes an instance based on ThreadPoolExecutor.'''
-        self.__cmds: Command = Command()
         if isinstance(max_workers, int):
             max_workers = max(max_workers, 2)
         super().__init__(max_workers, thread_name_prefix, initializer, initargs)  # noqa:E501
-
-    @property
-    def cmds(self) -> Command:
-        '''command-line toolkit'''
-        return self.__cmds
 
     @property
     def alive_threads(self) -> Set[Thread]:
