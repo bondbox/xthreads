@@ -4,7 +4,7 @@ from time import sleep
 import unittest
 
 from xkits_thread.executor import ThreadPool
-from xkits_thread.executor import hourglass
+from xkits_thread.executor import hourglass  # noqa:H306
 
 
 class TestExecute(unittest.TestCase):
