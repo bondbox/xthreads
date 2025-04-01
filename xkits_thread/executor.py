@@ -37,29 +37,29 @@ def hourglass(seconds: TimeUnit):
 
 
 class ThreadPool(ThreadPoolExecutor):
-    '''Thread Pool'''
+    """Thread Pool"""
 
     def __init__(self, max_workers: Optional[int] = None,
                  thread_name_prefix: str = "work_thread",
                  initializer: Optional[Callable] = None,
                  initargs: Tuple = ()):
-        '''Initializes an instance based on ThreadPoolExecutor.'''
+        """Initializes an instance based on ThreadPoolExecutor."""
         if isinstance(max_workers, int):
             max_workers = max(max_workers, 2)
         super().__init__(max_workers, thread_name_prefix, initializer, initargs)  # noqa:E501
 
     @property
     def alive_threads(self) -> Set[Thread]:
-        '''alive threads'''
+        """alive threads"""
         return {thread for thread in self._threads if thread.is_alive()}
 
     @property
     def other_threads(self) -> Set[Thread]:
-        '''other threads'''
+        """other threads"""
         current: Thread = current_thread()
         return {thread for thread in self._threads if thread is not current}
 
     @property
     def other_alive_threads(self) -> Set[Thread]:
-        '''other alive threads'''
+        """other alive threads"""
         return {thread for thread in self.other_threads if thread.is_alive()}

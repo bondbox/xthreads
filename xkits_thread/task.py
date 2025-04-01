@@ -19,7 +19,7 @@ from xkits_lib.meter import TimeUnit
 
 
 class TaskJob():
-    '''Task Job'''
+    """Task Job"""
 
     def __init__(self, no: int, fn: Callable, *args: Any, **kwargs: Any):
         self.__no: int = no
@@ -40,38 +40,38 @@ class TaskJob():
 
     @property
     def id(self) -> int:
-        '''job id'''
+        """job id"""
         return self.__no
 
     @property
     def fn(self) -> Callable:
-        '''job callable function'''
+        """job callable function"""
         return self.__fn
 
     @property
     def args(self) -> Tuple[Any, ...]:
-        '''job callable arguments'''
+        """job callable arguments"""
         return self.__args
 
     @property
     def kwargs(self) -> Dict[str, Any]:
-        '''job callable keyword arguments'''
+        """job callable keyword arguments"""
         return self.__kwargs
 
     @property
     def result(self) -> Any:
-        '''job callable function return value'''
+        """job callable function return value"""
         if isinstance(self.__result, Exception):
             raise self.__result
         return self.__result
 
     @property
     def running_timer(self) -> TimeMeter:
-        '''job running timer'''
+        """job running timer"""
         return self.__running_timer
 
     def run(self) -> bool:
-        '''run job'''
+        """run job"""
         try:
             if self.running_timer.started:
                 raise RuntimeError(f"{self} is already started")
@@ -87,26 +87,26 @@ class TaskJob():
             self.running_timer.shutdown()
 
     def shutdown(self) -> None:
-        '''wait for job to finish'''
+        """wait for job to finish"""
         while self.running_timer.started:
             sleep(0.05)
 
     def startup(self) -> None:
-        '''same as run'''
+        """same as run"""
         self.run()
 
     def restart(self) -> None:
-        '''restart job'''
+        """restart job"""
         self.shutdown()
         self.startup()
 
     def barrier(self) -> None:
-        '''same as shutdown'''
+        """same as shutdown"""
         self.shutdown()
 
 
 class DelayTaskJob(TaskJob):
-    '''Delay Task Job'''
+    """Delay Task Job"""
     MIN_DELAY_TIME: float = 0.001
 
     def __init__(self, delay: TimeUnit, no: int, fn: Callable, *args: Any, **kwargs: Any):  # noqa:E501
@@ -120,34 +120,34 @@ class DelayTaskJob(TaskJob):
 
     @property
     def delay_timer(self) -> TimeMeter:
-        '''job delay timer'''
+        """job delay timer"""
         return self.__delay_timer
 
     @property
     def delay_time(self) -> float:
-        '''job delay time'''
+        """job delay time"""
         return self.__delay_time
 
     @property
     def waiting(self) -> bool:
-        '''job waiting to run'''
+        """job waiting to run"""
         return self.delay_timer.runtime < self.delay_time
 
     def renew(self, delay: Optional[TimeUnit] = None) -> None:
-        '''renew delay time'''
+        """renew delay time"""
         if delay is not None:
             self.__delay_time = float(max(delay, self.MIN_DELAY_TIME))
         self.delay_timer.restart()
 
     def run(self) -> bool:
-        '''run delay job'''
+        """run delay job"""
         self.delay_timer.alarm(self.delay_time)
         assert not self.waiting, f"{self} is waiting to run"
         return super().run()
 
 
 class DaemonTaskJob(TaskJob):
-    '''Daemon Task Job'''
+    """Daemon Task Job"""
 
     def __init__(self, no: int, fn: Callable, *args: Any, **kwargs: Any):
         self.__counter: StatusCountMeter = StatusCountMeter()
@@ -160,22 +160,22 @@ class DaemonTaskJob(TaskJob):
 
     @property
     def daemon_counter(self) -> StatusCountMeter:
-        '''daemon status counter'''
+        """daemon status counter"""
         return self.__counter
 
     @property
     def daemon_running(self) -> bool:
-        '''daemon running flag'''
+        """daemon running flag"""
         return self.__running
 
     def run_in_background(self) -> Thread:
-        '''run job in daemon mode in background'''
+        """run job in daemon mode in background"""
         thread: Thread = Thread(target=self.run)
         thread.start()
         return thread
 
     def run(self):
-        '''run job in daemon mode in current thread'''
+        """run job in daemon mode in current thread"""
         self.__running = True
         while self.daemon_running:
             success: bool = super().run()
@@ -183,21 +183,21 @@ class DaemonTaskJob(TaskJob):
             sleep(0.05 if success else 0.1)
 
     def shutdown(self) -> None:
-        '''wait for job to finish'''
+        """wait for job to finish"""
         self.__running = False
         super().shutdown()
 
     def startup(self) -> None:
-        '''same as run in background'''
+        """same as run in background"""
         self.run_in_background()
 
     def restart(self) -> None:
-        '''restart job'''
+        """restart job"""
         self.shutdown()
         self.startup()
 
     def barrier(self) -> None:
-        '''same as restart'''
+        """same as restart"""
         self.restart()
 
 
@@ -208,7 +208,7 @@ else:  # Python3.8 TypeError
 
 
 class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-instance-attributes
-    '''Task Thread Pool'''
+    """Task Thread Pool"""
 
     def __init__(self, workers: int = 1, jobs: int = 0, prefix: str = "task"):
         wsize: int = max(workers, 1)
@@ -232,36 +232,36 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
 
     @property
     def jobs(self) -> JobQueue:
-        '''task jobs'''
+        """task jobs"""
         return self.__jobs
 
     @property
     def thread_name_prefix(self) -> str:
-        '''task thread name prefix'''
+        """task thread name prefix"""
         return self.__prefix
 
     @property
     def threads(self) -> Set[Thread]:
-        '''task threads'''
+        """task threads"""
         return self.__threads
 
     @property
     def running(self) -> bool:
-        '''task threads are started'''
+        """task threads are started"""
         return self.__running
 
     @property
     def workers(self) -> int:
-        '''task workers'''
+        """task workers"""
         return self.__workers
 
     @property
     def status_counter(self) -> StatusCountMeter:
-        '''task job status counter'''
+        """task job status counter"""
         return self.__status
 
     def task(self):
-        '''execute a task from jobs queue'''
+        """execute a task from jobs queue"""
         status_counter: StatusCountMeter = StatusCountMeter()
         while True:
             job: Optional[TaskJob] = self.jobs.get(block=True)
@@ -289,19 +289,19 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
         return job
 
     def submit_task(self, fn: Callable, *args: Any, **kwargs: Any) -> TaskJob:
-        '''submit a task to jobs queue'''
+        """submit a task to jobs queue"""
         with self.__intlock:  # generate job id under lock protection
             sn: int = self.__counter.inc()  # serial number
             return self.submit_job(TaskJob(sn, fn, *args, **kwargs))
 
     def submit_delay_task(self, delay: TimeUnit, fn: Callable, *args: Any, **kwargs: Any) -> TaskJob:  # noqa:E501
-        '''submit a delay task to jobs queue'''
+        """submit a delay task to jobs queue"""
         with self.__intlock:  # generate job id under lock protection
             sn: int = self.__counter.inc()  # serial number
             return self.submit_job(DelayTaskJob(delay, sn, fn, *args, **kwargs))  # noqa:E501
 
     def shutdown(self) -> None:
-        '''stop all task threads and waiting for all jobs finish'''
+        """stop all task threads and waiting for all jobs finish"""
         with self.__intlock:  # block submit new tasks
             self.__running = False
             self.jobs.put(None)  # notice tasks
@@ -314,7 +314,7 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
                     raise RuntimeError(f"Unexecuted job: {job}")  # noqa:E501, pragma: no cover
 
     def startup(self) -> None:
-        '''start task threads'''
+        """start task threads"""
         with self.__intlock:
             for i in range(self.workers):
                 thread_name: str = f"{self.thread_name_prefix}_{i}"
@@ -324,10 +324,10 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
             self.__running = True
 
     def restart(self) -> None:
-        '''stop submit new tasks and waiting for all submitted tasks to end'''
+        """stop submit new tasks and waiting for all submitted tasks to end"""
         self.shutdown()
         self.startup()
 
     def barrier(self) -> None:
-        '''same as restart'''
+        """same as restart"""
         self.restart()
