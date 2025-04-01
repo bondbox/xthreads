@@ -180,6 +180,7 @@ class DaemonTaskJob(TaskJob):
         while self.daemon_running:
             success: bool = super().run()
             self.daemon_counter.inc(success)
+            sleep(0.05 if success else 0.1)
 
     def shutdown(self) -> None:
         '''wait for job to finish'''
