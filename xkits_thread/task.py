@@ -170,7 +170,7 @@ class DaemonTaskJob(TaskJob):
 
     def run_in_background(self) -> Thread:
         """run job in daemon mode in background"""
-        thread: Thread = Thread(target=self.run)
+        thread: Thread = Thread(target=self.run, daemon=True)
         thread.start()
         return thread
 
@@ -318,7 +318,7 @@ class TaskPool(Dict[int, TaskJob]):  # noqa: E501, pylint: disable=too-many-inst
         with self.__intlock:
             for i in range(self.workers):
                 thread_name: str = f"{self.thread_name_prefix}_{i}"
-                thread = Thread(name=thread_name, target=self.task)
+                thread = Thread(name=thread_name, target=self.task, daemon=True)  # noqa:E501
                 self.threads.add(thread)
                 thread.start()  # run
             self.__running = True
