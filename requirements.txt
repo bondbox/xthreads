@@ -1,2 +1,2 @@
-xkits-lib>=0.3
+xkits-lib>=0.4
 psutil
